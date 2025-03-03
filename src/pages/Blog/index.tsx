@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabase";
+import { StaticImport } from "next/dist/shared/lib/get-img-props";
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -7,7 +9,7 @@ type BlogType = {
   id: number;
   title: string;
   content: string;
-  image_url: string | null;
+  image_url: string | null | StaticImport;
 };
 
 export default function Home() {
@@ -34,14 +36,16 @@ export default function Home() {
               key={post.id}
               className="w-[100%] md:w-[45%] lg:w-[30%] p-4 border border-gray-400 rounded mb-4"
             >
-              {post.image_url && (
-                <img
-                  src={post.image_url}
+              <div className="relative w-full h-[200px] mb-4">
+                <Image
+                  src={post.image_url || "/Images/ImagePlaceholder.png"}
                   alt={post.title}
-                  className="w-full rounded mb-2"
+                  fill
+                  className="object-contain rounded-mdx"
                 />
-              )}
-              <h2 className="text-xl font-semibold">{post.title}</h2>
+              </div>
+
+              <h2 className="text-xl font-semibold line-clamp-2">{post.title}</h2>
               <Link
                 href={`/Blog/${post.id}`}
                 className="text-center bg-blue-500 p-2 rounded-md text-white mt-5 block"

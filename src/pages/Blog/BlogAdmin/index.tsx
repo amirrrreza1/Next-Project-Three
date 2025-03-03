@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
 import Swal from "sweetalert2";
+import Image from "next/image";
 
 interface Blog {
   id: number;
@@ -58,7 +59,7 @@ export default function BlogList() {
           <h1 className="text-2xl font-bold mb-4">Blog List</h1>
           <Link
             href="/Blog/BlogAdmin/AddNewBlog"
-            className="w-[150px] bg-green-500 text-white p-2 rounded mb-4 text-center"
+            className="w-[150px] bg-green-500 hover:bg-green-600 text-white p-2 rounded mb-4 text-center transition-all"
           >
             Add New Blog
           </Link>
@@ -67,20 +68,21 @@ export default function BlogList() {
         {blogs.length === 0 ? (
           <p className="text-center my-10">There is no blog yet.</p>
         ) : (
-          <div className="w-[95%] max-w-[1000px] m-auto space-y-4 flex justify-around items-center flex-wrap">
+          <div className="w-[95%] max-w-[1000px] m-auto space-y-4 flex justify-around items-stretch flex-wrap">
             {blogs.map((blog) => (
               <div
                 key={blog.id}
-                className="w-[100%] md:w-[45%] lg:w-[30%] border p-4 rounded shadow"
+                className="w-[100%] md:w-[45%] lg:w-[30%] border p-4 rounded shadow h-full flex flex-col justify-between"
               >
-                {blog.image_url && (
-                  <img
-                    src={blog.image_url}
+                <div className="relative w-full h-[200px]">
+                  <Image
+                    src={ blog.image_url || "/Images/ImagePlaceholder.png" }
                     alt={blog.title}
-                    className="w-full object-cover rounded mb-2"
+                    fill
+                    className="object-contain rounded-md"
                   />
-                )}
-                <h2 className="text-xl font-semibold text-center line-clamp-2">
+                </div>
+                <h2 className="text-xl font-semibold text-center line-clamp-2 h-[80px] flex justify-center items-center">
                   {blog.title}
                 </h2>
                 <div className="flex justify-between mt-2">
@@ -88,13 +90,13 @@ export default function BlogList() {
                     onClick={() =>
                       router.push(`/Blog/BlogAdmin/EditBlog/${blog.id}`)
                     }
-                    className="bg-blue-500 text-white px-3 py-1 rounded"
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition-all cursor-pointer"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(blog.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded"
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-all cursor-pointer"
                   >
                     Delete
                   </button>
