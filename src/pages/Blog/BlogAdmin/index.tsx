@@ -29,10 +29,6 @@ export default function BlogList() {
   }, []);
 
   const handleEditClick = async (id: number) => {
-    await supabase.from("Blogs").update({ edited: true }).eq("id", id);
-    setBlogs((prev) =>
-      prev.map((blog) => (blog.id === id ? { ...blog, edited: true } : blog))
-    );
     router.push(`/Blog/BlogAdmin/EditBlog/${id}`);
   };
 

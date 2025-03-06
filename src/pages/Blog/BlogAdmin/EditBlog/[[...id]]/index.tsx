@@ -45,43 +45,43 @@ export default function EditBlogPage() {
     fetchBlog();
   }, [id]);
 
-  const handleUpdateBlog = async (data: any, imageFile?: File) => {
-    if (!id) return;
+const handleUpdateBlog = async (data: any, imageFile?: File) => {
+  if (!id) return;
 
-    let imageUrl = blog?.image_url || "";
+  let imageUrl = blog?.image_url || "";
 
-    // اگر کاربر تصویر جدیدی آپلود کرد، تصویر را جایگزین کنیم
-    if (imageFile) {
-      const filePath = `IMG/${Date.now()}_${imageFile.name}`;
-      const { data: uploadedFileData, error: uploadError } =
-        await supabase.storage.from("IMG").upload(filePath, imageFile);
+  // اگر کاربر تصویر جدیدی آپلود کرد، تصویر را جایگزین کنیم
+  if (imageFile) {
+    const filePath = `IMG/${Date.now()}_${imageFile.name}`;
+    const { data: uploadedFileData, error: uploadError } =
+      await supabase.storage.from("IMG").upload(filePath, imageFile);
 
-      if (uploadError) {
-        console.error(
-          "Error uploading image:",
-          uploadError.message || uploadError
-        );
-      } else {
-        const { data } = supabase.storage.from("IMG").getPublicUrl(filePath);
-        imageUrl = data?.publicUrl || "";
-      }
-    }
-
-    const { error } = await supabase
-      .from("Blogs")
-      .update({
-        title: data.title,
-        content: data.content,
-        image_url: imageUrl, // ذخیره تصویر جدید یا قبلی
-      })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Error updating blog:", error.message);
+    if (uploadError) {
+      console.error(
+        "Error uploading image:",
+        uploadError.message || uploadError
+      );
     } else {
-      router.push("/Blog/BlogAdmin");
+      const { data } = supabase.storage.from("IMG").getPublicUrl(filePath);
+      imageUrl = data?.publicUrl || "";
     }
-  };
+  }
+
+  const { error } = await supabase
+    .from("Blogs")
+    .update({
+      title: data.title,
+      content: data.content,
+      image_url: imageUrl, // ذخیره تصویر جدید یا قبلی
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating blog:", error.message);
+  } else {
+    router.push("/Blog/BlogAdmin");
+  }
+};
 
   if (loading)
     return (
@@ -107,7 +107,7 @@ export default function EditBlogPage() {
           content: blog.content,
           image_url: blog.image_url,
         }}
-        onSubmit={handleUpdateBlog} // این باید باشه
+        onSubmit={handleUpdateBlog}
       />
     </div>
   );

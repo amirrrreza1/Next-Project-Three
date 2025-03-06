@@ -8,20 +8,20 @@ import Swal from "sweetalert2";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
-// غیرفعال کردن SSR برای TinyMCE
 const Editor = dynamic(
   () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
   {
     ssr: false,
-    loading: () => <p>Loading editor...</p>, // نمایش متن هنگام لود شدن
+    loading: () => <p>Loading editor...</p>,
   }
 );
 
 interface BlogData {
-  id?: number; // اضافه کردن id
+  id?: number;
   title: string;
   content: string;
   image_url?: string;
+  edited?: boolean;
 }
 
 const BlogForm: React.FC<{
@@ -34,7 +34,7 @@ const BlogForm: React.FC<{
     register,
     handleSubmit,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<BlogData>({
     defaultValues: { title: "", content: "" },
   });
@@ -49,14 +49,10 @@ const BlogForm: React.FC<{
 
   useEffect(() => {
     setMounted(true);
-    console.log("Received initialValues:", initialValues);
-
     if (initialValues) {
-      console.log("initialValues.id:", initialValues.id); // مقدار id را چک کن
       setValue("title", initialValues.title);
       setValue("content", initialValues.content);
       setEditorContent(initialValues.content);
-
       if (initialValues.image_url) {
         setImagePreview(initialValues.image_url);
       }
@@ -81,8 +77,7 @@ const BlogForm: React.FC<{
   };
 
   const handleSubmitForm = async (data: BlogData) => {
-    setLoading(true); // **فعال کردن لودینگ**
-
+    setLoading(true);
     const result = await Swal.fire({
       title: "Are you sure you want to save?",
       icon: "warning",
@@ -96,29 +91,21 @@ const BlogForm: React.FC<{
       return;
     }
 
-    let imageUrl = initialValues?.image_url || ""; // در صورت وجود تصویر قبلی، مقداردهی اولیه شود
-
-    // اگر تصویر جدیدی انتخاب شده باشد، آپلود کنیم
+    let imageUrl = initialValues?.image_url || "";
     if (imageFile) {
       const filePath = `IMG/${Date.now()}_${imageFile.name}`;
       const { data: uploadedFileData, error: uploadError } =
         await supabase.storage.from("IMG").upload(filePath, imageFile);
 
       if (uploadError) {
-        console.error(
-          "Error uploading image:",
-          uploadError.message || uploadError
-        );
         setLoading(false);
         return;
       }
-
       const { data } = supabase.storage.from("IMG").getPublicUrl(filePath);
       imageUrl = data?.publicUrl || "";
     }
 
     let error, blogData;
-
     if (isEdit && initialValues?.id) {
       ({ error, data: blogData } = await supabase
         .from("Blogs")
@@ -126,22 +113,21 @@ const BlogForm: React.FC<{
           title: data.title,
           content: editorContent,
           image_url: imageUrl,
+          edited: isDirty,
         })
         .eq("id", initialValues.id));
-
-      console.log("Update result:", blogData);
     } else {
-      // **حالت افزودن: پست جدید بساز**
       ({ error, data: blogData } = await supabase.from("Blogs").insert([
         {
           title: data.title,
           content: editorContent,
           image_url: imageUrl,
+          edited: true,
         },
       ]));
     }
 
-    setLoading(false); // **غیرفعال کردن لودینگ بعد از ارسال**
+    setLoading(false);
 
     if (error) {
       Swal.fire(
@@ -168,17 +154,14 @@ const BlogForm: React.FC<{
           className="p-2 w-full border border-gray-300 rounded"
           disabled={loading}
         />
-
         <div className="mt-5">
           <p>Your image preview:</p>
           {imagePreview && (
-            <div className="mt-4">
-              <img
-                src={imagePreview || "./Images/ImagePlaceholder.png"}
-                alt="Image preview"
-                className="w-[300px] h-auto"
-              />
-            </div>
+            <img
+              src={imagePreview}
+              alt="Image preview"
+              className="w-[300px] h-auto"
+            />
           )}
         </div>
       </div>
@@ -187,13 +170,12 @@ const BlogForm: React.FC<{
         <input
           {...register("title", { required: "Title is required" })}
           className="p-2 w-full border border-gray-300 rounded"
-          disabled={loading} // **غیرفعال کردن ورودی در هنگام لودینگ**
+          disabled={loading}
         />
         {errors.title && (
           <p className="text-red-500 text-sm">{errors.title.message}</p>
         )}
       </div>
-
       <div className="my-5">
         <label className="block text-md font-medium my-1">Content</label>
         {mounted && (
@@ -225,17 +207,7 @@ const BlogForm: React.FC<{
             }}
           />
         )}
-        {errors.content && (
-          <p className="text-red-500 text-sm">{errors.content.message}</p>
-        )}
       </div>
-
-      {loading && (
-        <div className="w-full h-screen bg-black/70 flex justify-center items-center fixed top-[50%] left-[50%] translate-y-[-50%] translate-x-[-50%] z-50">
-          <div className="w-6 h-6 border-4 border-white border-dashed rounded-full animate-spin"></div>
-          <p className="ml-2 text-white">Uploading...</p>
-        </div>
-      )}
       <div className="flex gap-3">
         <button
           type="submit"
@@ -245,21 +217,6 @@ const BlogForm: React.FC<{
         </button>
         <Link
           href="/Blog/BlogAdmin"
-          onClick={async (e) => {
-            e.preventDefault();
-            const result = await Swal.fire({
-              title: "Are you sure you want to exit?",
-              text: "Any unsaved changes will be lost.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Yes, exit",
-              cancelButtonText: "Cancel",
-            });
-
-            if (result.isConfirmed) {
-              router.push("/Blog/BlogAdmin");
-            }
-          }}
           className="w-[150px] bg-red-500 hover:bg-red-600 text-white py-2 rounded block text-center"
         >
           Exit
