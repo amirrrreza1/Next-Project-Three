@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
 // غیرفعال کردن SSR برای TinyMCE
 const Editor = dynamic(
@@ -19,6 +20,7 @@ const Editor = dynamic(
 interface BlogData {
   title: string;
   content: string;
+  image_url?: string;
 }
 
 const BlogForm: React.FC<{
@@ -39,7 +41,9 @@ const BlogForm: React.FC<{
   const [editorContent, setEditorContent] = useState<string>("");
   const [mounted, setMounted] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialValues?.image_url || "/Images/ImagePlaceholder.png"
+  );
   const [loading, setLoading] = useState<boolean>(false); // **اضافه کردن استیت لودینگ**
 
   useEffect(() => {
@@ -48,6 +52,11 @@ const BlogForm: React.FC<{
       setValue("title", initialValues.title);
       setValue("content", initialValues.content);
       setEditorContent(initialValues.content);
+
+      // مقداردهی اولیه پیش‌نمایش تصویر
+      if (initialValues.image_url) {
+        setImagePreview(initialValues.image_url);
+      }
     }
   }, [initialValues, setValue]);
 
@@ -121,12 +130,37 @@ const BlogForm: React.FC<{
       );
     } else {
       Swal.fire("Success!", "The blog was saved successfully", "success");
-      router.push(isEdit ? "/BlogAdmin" : "/Blog");
+      router.push("/Blog/BlogAdmin");
     }
   };
 
   return (
     <form onSubmit={handleSubmit(handleSubmitForm)} className="w-full">
+      <div className="my-5">
+        <label className="block text-md font-medium my-1">
+          Choose an preview image:
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="p-2 w-full border border-gray-300 rounded"
+          disabled={loading}
+        />
+
+        <div className="mt-5">
+          <p>Your image preview:</p>
+          {imagePreview && (
+            <div className="mt-4">
+              <img
+                src={imagePreview || "./Images/ImagePlaceholder.png"}
+                alt="Image preview"
+                className="w-[300px] h-auto"
+              />
+            </div>
+          )}
+        </div>
+      </div>
       <div>
         <label className="block text-md font-medium my-1">Title</label>
         <input
@@ -175,43 +209,41 @@ const BlogForm: React.FC<{
         )}
       </div>
 
-      <div className="my-5">
-        <label className="block text-md font-medium my-1">
-          Choose an image
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="p-2 w-full border border-gray-300 rounded"
-          disabled={loading} // **غیرفعال کردن ورودی هنگام لودینگ**
-        />
-        {imagePreview && (
-          <div className="mt-4">
-            <img
-              src={imagePreview}
-              alt="Image preview"
-              className="max-w-full h-auto"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* **نمایش لودینگ هنگام پردازش** */}
       {loading && (
-        <div className="flex justify-center my-4">
-          <div className="w-6 h-6 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-          <p className="ml-2 text-blue-500">Uploading...</p>
+        <div className="w-full h-screen bg-black/70 flex justify-center items-center fixed top-[50%] left-[50%] translate-y-[-50%] translate-x-[-50%] z-50">
+          <div className="w-6 h-6 border-4 border-white border-dashed rounded-full animate-spin"></div>
+          <p className="ml-2 text-white">Uploading...</p>
         </div>
       )}
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          className="w-[150px] bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"
+        >
+          Save
+        </button>
+        <Link
+          href="/Blog/BlogAdmin"
+          onClick={async (e) => {
+            e.preventDefault();
+            const result = await Swal.fire({
+              title: "Are you sure you want to exit?",
+              text: "Any unsaved changes will be lost.",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "Yes, exit",
+              cancelButtonText: "Cancel",
+            });
 
-      <button
-        type="submit"
-        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"
-        disabled={loading} // **غیرفعال کردن دکمه در هنگام لودینگ**
-      >
-        {loading ? "Saving..." : "Save"}
-      </button>
+            if (result.isConfirmed) {
+              router.push("/Blog/BlogAdmin");
+            }
+          }}
+          className="w-[150px] bg-red-500 hover:bg-red-600 text-white py-2 rounded block text-center"
+        >
+          Exit
+        </Link>
+      </div>
     </form>
   );
 };

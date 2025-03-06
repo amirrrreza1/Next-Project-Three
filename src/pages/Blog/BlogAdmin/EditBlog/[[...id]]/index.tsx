@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { supabase } from "@/lib/supabase";
 import BlogForm from "@/Components/BlogForm/BlogForm";
 import Link from "next/link";
+import Head from "next/head";
 
 interface Blog {
   title: string;
@@ -80,17 +81,14 @@ export default function EditBlogPage() {
   if (!blog) return <p>Blog not found</p>;
 
   return (
-    <div className="w-full mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Edit Blog</h1>
-        <Link
-          href="/Blog/BlogAdmin"
-          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-all"
-        >
-          Exit
-        </Link>
+    <>
+      <Head>
+        <title>Edit Blog</title>
+      </Head>
+      <div className="w-full mx-auto p-6">
+          <h1 className="text-3xl font-bold">Edit Blog</h1>
+        {blog && <BlogForm onSubmit={handleUpdateBlog} initialValues={blog} />}
       </div>
-      {blog && <BlogForm onSubmit={handleUpdateBlog} initialValues={blog} />}
-    </div>
+    </>
   );
 }

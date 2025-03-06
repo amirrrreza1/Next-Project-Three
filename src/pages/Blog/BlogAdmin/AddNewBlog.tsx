@@ -1,6 +1,7 @@
 import { useState } from "react";
 import BlogForm from "@/Components/BlogForm/BlogForm";
 import { supabase } from "@/lib/supabase";
+import Head from "next/head";
 
 const AddNewBlogPage = () => {
   const handleSubmitBlog = async (data: any) => {
@@ -39,12 +40,17 @@ const AddNewBlogPage = () => {
   };
 
   return (
-    <div className="w-full mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Add New Blog</h1>
+    <>
+      <Head>
+        <title>Add New Blog</title>
+      </Head>
+      <div className="w-full mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">Add New Blog</h1>
 
-      {/* فرم برای افزودن بلاگ */}
-      <BlogForm onSubmit={handleSubmitBlog} />
-    </div>
+        {/* فرم برای افزودن بلاگ */}
+        <BlogForm onSubmit={handleSubmitBlog} />
+      </div>
+    </>
   );
 };
 
