@@ -16,13 +16,16 @@ interface Blog {
 
 export default function BlogList() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const fetchBlogs = async () => {
+      setLoading(true);
       const { data, error } = await supabase.from("Blogs").select("*");
       if (error) console.error("Error fetching blogs:", error);
       else setBlogs(data || []);
+      setLoading(false);
     };
 
     fetchBlogs();
@@ -44,6 +47,7 @@ export default function BlogList() {
     });
 
     if (result.isConfirmed) {
+      setLoading(true); // فعال کردن لودینگ کل صفحه
       const { error } = await supabase.from("Blogs").delete().eq("id", id);
       if (error) {
         Swal.fire("Error", "Failed to delete blog.", "error");
@@ -51,11 +55,12 @@ export default function BlogList() {
         setBlogs((prev) => prev.filter((blog) => blog.id !== id));
         Swal.fire("Deleted!", "Your blog has been deleted.", "success");
       }
+      setLoading(false); // غیرفعال کردن لودینگ
     }
   };
 
   const revalidatePage = async () => {
-    // شناسایی پست‌هایی که ویرایش شده‌اند
+    setLoading(true); // نمایش لودینگ برای کل صفحه
     const editedBlogs = blogs
       .filter((blog) => blog.edited)
       .map((blog) => blog.id);
@@ -66,15 +71,15 @@ export default function BlogList() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        editedBlogIds: editedBlogs, // ارسال شناسه‌های پست‌های ویرایش شده
+        editedBlogIds: editedBlogs,
       }),
     });
 
     const data = await res.json();
-    alert(data.message);
+    Swal.fire("Success", data.message, "success");
 
-    // بروز رسانی وضعیت ویرایش شده به false در کلاینت
     setBlogs((prev) => prev.map((blog) => ({ ...blog, edited: false })));
+    setLoading(false); // غیرفعال کردن لودینگ
   };
 
   return (
@@ -82,6 +87,15 @@ export default function BlogList() {
       <Head>
         <title>Blog Admin Page</title>
       </Head>
+
+      {/* نمایش لودینگ کل صفحه */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center flex-col z-50">
+            <span className="animate-spin border-4 border-white border-t-transparent rounded-full w-10 h-10 mb-3"></span>
+            <p className="text-lg font-semibold text-white">Loading...</p>
+        </div>
+      )}
+
       <div className="w-[90%] mx-auto p-6 bg-white">
         <div className="w-full justify-between md:flex">
           <h1 className="text-2xl font-bold mb-4">Blog List</h1>
