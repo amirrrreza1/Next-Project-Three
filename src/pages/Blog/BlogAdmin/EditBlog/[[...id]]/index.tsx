@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { supabase } from "@/lib/supabase";
 import BlogForm from "@/Components/BlogForm/BlogForm";
 import Link from "next/link";
-import Head from "next/head";
 
 interface Blog {
   title: string;
@@ -77,18 +76,13 @@ export default function EditBlogPage() {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!blog) return <p>Blog not found</p>;
+  if (loading) return <p className="text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl">Loading...</p>;
+  if (!blog) return <p className="text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl">No blog found.</p>;
 
   return (
-    <>
-      <Head>
-        <title>Edit Blog</title>
-      </Head>
-      <div className="w-full mx-auto p-6">
-          <h1 className="text-3xl font-bold">Edit Blog</h1>
-        {blog && <BlogForm onSubmit={handleUpdateBlog} initialValues={blog} />}
-      </div>
-    </>
+    <div className="w-full mx-auto p-6">
+        <h1 className="text-3xl font-bold">Edit Blog</h1>
+      {blog && <BlogForm onSubmit={handleUpdateBlog} initialValues={blog} />}
+    </div>
   );
 }

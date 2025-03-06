@@ -44,7 +44,7 @@ const BlogForm: React.FC<{
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialValues?.image_url || "/Images/ImagePlaceholder.png"
   );
-  const [loading, setLoading] = useState<boolean>(false); // **اضافه کردن استیت لودینگ**
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     setMounted(true);
@@ -93,7 +93,9 @@ const BlogForm: React.FC<{
       return;
     }
 
-    let imageUrl = "";
+    let imageUrl = initialValues?.image_url || ""; // در صورت وجود تصویر قبلی، مقداردهی اولیه شود
+
+    // اگر تصویر جدیدی انتخاب شده باشد، آپلود کنیم
     if (imageFile) {
       const filePath = `IMG/${Date.now()}_${imageFile.name}`;
       const { data: uploadedFileData, error: uploadError } =
@@ -112,13 +114,28 @@ const BlogForm: React.FC<{
       imageUrl = data?.publicUrl || "";
     }
 
-    const { error, data: blogData } = await supabase.from("Blogs").insert([
-      {
-        title: data.title,
-        content: editorContent,
-        image_url: imageUrl,
-      },
-    ]);
+    let error, blogData;
+
+    if (isEdit && initialValues) {
+      // **حالت ویرایش: پست را آپدیت کن**
+      ({ error, data: blogData } = await supabase
+        .from("Blogs")
+        .update({
+          title: data.title,
+          content: editorContent,
+          image_url: imageUrl,
+        })
+        .eq("id", (initialValues as any).id)); // فیلتر کردن براساس ID پست
+    } else {
+      // **حالت افزودن: پست جدید بساز**
+      ({ error, data: blogData } = await supabase.from("Blogs").insert([
+        {
+          title: data.title,
+          content: editorContent,
+          image_url: imageUrl,
+        },
+      ]));
+    }
 
     setLoading(false); // **غیرفعال کردن لودینگ بعد از ارسال**
 
