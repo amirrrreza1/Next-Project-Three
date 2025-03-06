@@ -47,6 +47,12 @@ const BlogForm: React.FC<{
   );
   const [loading, setLoading] = useState<boolean>(false);
 
+  if (loading) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "auto";
+  }
+
   useEffect(() => {
     setMounted(true);
     if (initialValues) {
@@ -155,8 +161,9 @@ const BlogForm: React.FC<{
   return (
     <form onSubmit={handleSubmit(handleSubmitForm)} className="w-full">
       {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center flex-col gap-3 bg-black/80 z-50">
           <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-white">Saving</div>
         </div>
       )}
 
@@ -171,13 +178,13 @@ const BlogForm: React.FC<{
           className="p-2 w-full border border-gray-300 rounded"
           disabled={loading}
         />
-        <div className="mt-5">
-          <p>Your image preview:</p>
+        <div className="mt-5 flex flex-col justify-center items-center">
+          <p className="self-start mb-3">Your image preview:</p>
           {imagePreview && (
             <img
               src={imagePreview}
               alt="Image preview"
-              className="w-[300px] h-auto"
+              className="w-[300px] h-auto md:self-start"
             />
           )}
         </div>
@@ -225,7 +232,7 @@ const BlogForm: React.FC<{
           />
         )}
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-3 items-center justify-center mt-5 md:justify-start">
         <button
           type="submit"
           className="w-[150px] bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"

@@ -83,7 +83,7 @@ export default function BlogList() {
         <title>Blog Admin Page</title>
       </Head>
       <div className="w-[90%] mx-auto p-6 bg-white">
-        <div className="w-full justify-between flex">
+        <div className="w-full justify-between md:flex">
           <h1 className="text-2xl font-bold mb-4">Blog List</h1>
           <div className="flex gap-3">
             <Link
