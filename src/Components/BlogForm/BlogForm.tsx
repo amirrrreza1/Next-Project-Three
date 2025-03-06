@@ -18,6 +18,7 @@ const Editor = dynamic(
 );
 
 interface BlogData {
+  id?: number; // اضافه کردن id
   title: string;
   content: string;
   image_url?: string;
@@ -48,12 +49,14 @@ const BlogForm: React.FC<{
 
   useEffect(() => {
     setMounted(true);
+    console.log("Received initialValues:", initialValues);
+
     if (initialValues) {
+      console.log("initialValues.id:", initialValues.id); // مقدار id را چک کن
       setValue("title", initialValues.title);
       setValue("content", initialValues.content);
       setEditorContent(initialValues.content);
 
-      // مقداردهی اولیه پیش‌نمایش تصویر
       if (initialValues.image_url) {
         setImagePreview(initialValues.image_url);
       }
@@ -116,8 +119,7 @@ const BlogForm: React.FC<{
 
     let error, blogData;
 
-    if (isEdit && initialValues) {
-      // **حالت ویرایش: پست را آپدیت کن**
+    if (isEdit && initialValues?.id) {
       ({ error, data: blogData } = await supabase
         .from("Blogs")
         .update({
@@ -125,7 +127,9 @@ const BlogForm: React.FC<{
           content: editorContent,
           image_url: imageUrl,
         })
-        .eq("id", (initialValues as any).id)); // فیلتر کردن براساس ID پست
+        .eq("id", initialValues.id));
+
+      console.log("Update result:", blogData);
     } else {
       // **حالت افزودن: پست جدید بساز**
       ({ error, data: blogData } = await supabase.from("Blogs").insert([

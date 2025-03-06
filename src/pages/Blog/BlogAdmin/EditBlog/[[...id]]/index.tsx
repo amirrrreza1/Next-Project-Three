@@ -5,9 +5,16 @@ import BlogForm from "@/Components/BlogForm/BlogForm";
 import Link from "next/link";
 
 interface Blog {
+  id: number;
   title: string;
   content: string;
   image_url?: string; // اضافه کردن فیلد تصویر
+}
+
+interface BlogFormProps {
+  isEdit: boolean;
+  initialValues: Blog;
+  onSubmit: (data: Blog, imageFile?: File) => void; // این خط باید باشه
 }
 
 export default function EditBlogPage() {
@@ -23,8 +30,8 @@ export default function EditBlogPage() {
       setLoading(true);
       const { data, error } = await supabase
         .from("Blogs")
-        .select("title, content, image_url")
-        .eq("id", id)
+        .select("*")
+        .eq("id", id) // مقدار id را از URL یا state دریافت می‌کنی؟
         .single();
 
       if (error) {
@@ -38,7 +45,7 @@ export default function EditBlogPage() {
     fetchBlog();
   }, [id]);
 
-  const handleUpdateBlog = async (data: Blog, imageFile?: File) => {
+  const handleUpdateBlog = async (data: any, imageFile?: File) => {
     if (!id) return;
 
     let imageUrl = blog?.image_url || "";
@@ -76,13 +83,32 @@ export default function EditBlogPage() {
     }
   };
 
-  if (loading) return <p className="text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl">Loading...</p>;
-  if (!blog) return <p className="text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl">No blog found.</p>;
+  if (loading)
+    return (
+      <p className="text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl">
+        Loading...
+      </p>
+    );
+  if (!blog)
+    return (
+      <p className="text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl">
+        No blog found.
+      </p>
+    );
 
   return (
     <div className="w-full mx-auto p-6">
-        <h1 className="text-3xl font-bold">Edit Blog</h1>
-      {blog && <BlogForm onSubmit={handleUpdateBlog} initialValues={blog} />}
+      <h1 className="text-3xl font-bold">Edit Blog</h1>
+      <BlogForm
+        isEdit={true}
+        initialValues={{
+          id: blog.id,
+          title: blog.title,
+          content: blog.content,
+          image_url: blog.image_url,
+        }}
+        onSubmit={handleUpdateBlog} // این باید باشه
+      />
     </div>
   );
 }
