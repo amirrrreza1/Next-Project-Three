@@ -1,76 +1,79 @@
-"use client";
-
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { StaticImport } from "next/dist/shared/lib/get-img-props";
+import Head from "next/head";
+import Image from "next/image";
 
-const BlogShow = () => {
-  const params = useParams();
-  const id = params?.id; // جلوگیری از خطای destructuring
-
-  const [post, setPost] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchPost = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("Blogs")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (!error) {
-        setPost(data);
-      }
-      setLoading(false);
-    };
-
-    fetchPost();
-  }, [id]);
-
-  if (!id) {
-    return (
-      <p className="text-center text-gray-500 my-10">شناسه نامعتبر است!</p>
-    );
-  }
-
-  if (loading) {
-    return (
-      <p className="text-center text-gray-500 my-10">در حال بارگذاری...</p>
-    );
-  }
-
-  if (!post) {
-    return <p className="text-center text-red-500 my-10">پست یافت نشد!</p>;
-  }
-
-  return (
-    <div className="max-w-3xl mx-auto my-10 p-6 bg-white shadow-lg rounded-lg">
-      <h1 className="text-3xl font-bold text-gray-800 mb-4">{post.title}</h1>
-      <div className="w-full h-[300px] overflow-hidden rounded-lg">
-        <img
-          src={post.image_url || "/Images/ImagePlaceholder.png"}
-          alt={post.title}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div
-        className="mt-6 text-gray-700 leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: post.content }}
-      ></div>
-      <div className="mt-6">
-        <a
-          href="/Blog"
-          className="inline-block px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-        >
-          بازگشت به لیست پست‌ها
-        </a>
-      </div>
-    </div>
-  );
+type BlogType = {
+  id: number;
+  title: string;
+  content: string;
+  image_url: string | null | StaticImport;
 };
 
-export default BlogShow;
+export default function BlogPost({ blog }: { blog: BlogType }) {
+  if (!blog) return <p>پست یافت ks</p>;
+
+  return (
+    <>
+      <Head>
+        <title>{blog.title}</title>
+      </Head>
+      <div className="w-[95%] max-w-[800px] mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-4 text-center">{blog.title}</h1>
+        {blog.image_url && (
+          <div className="relative w-full h-[300px] mb-4">
+            <Image
+              src={blog.image_url}
+              alt={blog.title}
+              fill
+              className="object-contain rounded-md"
+            />
+          </div>
+        )}
+        <p
+          className="text-lg"
+          dangerouslySetInnerHTML={{ __html: blog.content }}
+        ></p>
+      </div>
+    </>
+  );
+}
+
+// دریافت اطلاعات هر پست به‌صورت استاتیک
+export async function getStaticProps({ params }: { params: { id: string } }) {
+  const { data, error } = await supabase
+    .from("Blogs")
+    .select("*")
+    .eq("id", params.id)
+    .single(); // فقط یک پست را دریافت کن
+
+  if (error) {
+    console.error("Error fetching blog:", error);
+    return {
+      notFound: true, // صفحه 404 برگردان اگر پست وجود نداشت
+    };
+  }
+
+  return {
+    props: { blog: data }, // مقدار `blog` را پاس بده
+  };
+}
+
+// دریافت ۵ پست اول برای ساخت مسیرهای استاتیک
+export async function getStaticPaths() {
+  const { data, error } = await supabase.from("Blogs").select("id").limit(5);
+
+  if (error || !data) {
+    console.error("Error fetching blog IDs:", error);
+    return { paths: [], fallback: "blocking" }; // مسیرهای خالی در صورت خطا
+  }
+
+  const paths = data.map((post) => ({
+    params: { id: post.id.toString() },
+  }));
+
+  return {
+    paths,
+    fallback: "blocking", // مسیرهای جدید روی سرور ساخته شوند
+  };
+}

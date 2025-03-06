@@ -11,6 +11,7 @@ interface Blog {
   title: string;
   content: string;
   image_url: string;
+  edited: boolean;
 }
 
 export default function BlogList() {
@@ -27,10 +28,18 @@ export default function BlogList() {
     fetchBlogs();
   }, []);
 
+  const handleEditClick = async (id: number) => {
+    await supabase.from("Blogs").update({ edited: true }).eq("id", id);
+    setBlogs((prev) =>
+      prev.map((blog) => (blog.id === id ? { ...blog, edited: true } : blog))
+    );
+    router.push(`/Blog/BlogAdmin/EditBlog/${id}`);
+  };
+
   const handleDelete = async (id: number) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "This action cannot be undone!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -49,6 +58,29 @@ export default function BlogList() {
     }
   };
 
+  const revalidatePage = async () => {
+    // شناسایی پست‌هایی که ویرایش شده‌اند
+    const editedBlogs = blogs
+      .filter((blog) => blog.edited)
+      .map((blog) => blog.id);
+
+    const res = await fetch("/api/revalidate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        editedBlogIds: editedBlogs, // ارسال شناسه‌های پست‌های ویرایش شده
+      }),
+    });
+
+    const data = await res.json();
+    alert(data.message);
+
+    // بروز رسانی وضعیت ویرایش شده به false در کلاینت
+    setBlogs((prev) => prev.map((blog) => ({ ...blog, edited: false })));
+  };
+
   return (
     <>
       <Head>
@@ -57,12 +89,20 @@ export default function BlogList() {
       <div className="w-[90%] mx-auto p-6 bg-white">
         <div className="w-full justify-between flex">
           <h1 className="text-2xl font-bold mb-4">Blog List</h1>
-          <Link
-            href="/Blog/BlogAdmin/AddNewBlog"
-            className="w-[150px] bg-green-500 hover:bg-green-600 text-white p-2 rounded mb-4 text-center transition-all"
-          >
-            Add New Blog
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/Blog/BlogAdmin/AddNewBlog"
+              className="w-[150px] bg-green-500 hover:bg-green-600 text-white p-2 rounded mb-4 text-center transition-all block"
+            >
+              Add New Blog
+            </Link>
+            <button
+              onClick={revalidatePage}
+              className="w-[150px] bg-blue-500 hover:bg-blue-600 text-white p-2 rounded mb-4 text-center transition-all block"
+            >
+              Submit Changes
+            </button>
+          </div>
         </div>
 
         {blogs.length === 0 ? (
@@ -72,11 +112,11 @@ export default function BlogList() {
             {blogs.map((blog) => (
               <div
                 key={blog.id}
-                className="w-[100%] md:w-[45%] lg:w-[30%] border p-4 rounded shadow h-full flex flex-col justify-between"
+                className="w-[100%] md:w-[45%] lg:w-[30%] border p-4 rounded shadow h-full flex flex-col justify-between relative"
               >
                 <div className="relative w-full h-[200px]">
                   <Image
-                    src={ blog.image_url || "/Images/ImagePlaceholder.png" }
+                    src={blog.image_url || "/Images/ImagePlaceholder.png"}
                     alt={blog.title}
                     fill
                     className="object-contain rounded-md"
@@ -87,9 +127,7 @@ export default function BlogList() {
                 </h2>
                 <div className="flex justify-between mt-2">
                   <button
-                    onClick={() =>
-                      router.push(`/Blog/BlogAdmin/EditBlog/${blog.id}`)
-                    }
+                    onClick={() => handleEditClick(blog.id)}
                     className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition-all cursor-pointer"
                   >
                     Edit
@@ -101,6 +139,9 @@ export default function BlogList() {
                     Delete
                   </button>
                 </div>
+                {blog.edited && (
+                  <span className="w-3 h-3 bg-orange-500 rounded-full absolute top-2 right-2"></span>
+                )}
               </div>
             ))}
           </div>

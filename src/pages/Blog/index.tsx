@@ -1,9 +1,9 @@
 import { supabase } from "@/lib/supabase";
+import { GetStaticProps } from "next";
 import { StaticImport } from "next/dist/shared/lib/get-img-props";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 type BlogType = {
   id: number;
@@ -12,17 +12,7 @@ type BlogType = {
   image_url: string | null | StaticImport;
 };
 
-export default function Home() {
-  const [Blog, setBlog] = useState<BlogType[]>([]);
-
-  useEffect(() => {
-    const fetchBlog = async () => {
-      const { data, error } = await supabase.from("Blogs").select("*");
-      if (data && !error) setBlog(data);
-    };
-    fetchBlog();
-  }, []);
-
+export default function Home({ blogs }: { blogs: BlogType[] }) {
   return (
     <>
       <Head>
@@ -31,7 +21,7 @@ export default function Home() {
       <div className="w-[95%] max-w-[1000px] mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4 text-center">Blogs</h1>
         <div className="flex flex-wrap justify-center gap-3">
-          {Blog.map((post) => (
+          {blogs.map((post) => (
             <div
               key={post.id}
               className="w-[100%] md:w-[45%] lg:w-[30%] p-4 border border-gray-400 rounded mb-4"
@@ -45,7 +35,9 @@ export default function Home() {
                 />
               </div>
 
-              <h2 className="text-xl font-semibold line-clamp-2">{post.title}</h2>
+              <h2 className="text-xl font-semibold line-clamp-2">
+                {post.title}
+              </h2>
               <Link
                 href={`/Blog/${post.id}`}
                 className="text-center bg-blue-500 p-2 rounded-md text-white mt-5 block"
@@ -59,3 +51,19 @@ export default function Home() {
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps = async () => {
+  const { data, error } = await supabase
+    .from("Blogs")
+    .select("*")
+
+  if (error) {
+    console.error("Error fetching users:", error);
+    return { props: { blog: [] } };
+  }
+
+  return {
+    props: { blogs : data || [] },
+    revalidate: false,
+  };
+};
