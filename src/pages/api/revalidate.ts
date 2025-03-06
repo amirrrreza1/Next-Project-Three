@@ -26,6 +26,7 @@ export default async function handler(
       }
 
       res.status(200).json({ message: "Revalidation successful!" });
+      res.revalidate("/Blog");
     } catch (error) {
       console.error("Error during revalidation:", error);
       res.status(500).json({ message: "Internal Server Error" });
