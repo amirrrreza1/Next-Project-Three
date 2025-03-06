@@ -105,16 +105,27 @@ const BlogForm: React.FC<{
       imageUrl = data?.publicUrl || "";
     }
 
+    // بررسی تغییرات
+    const hasChanges =
+      data.title !== initialValues?.title ||
+      editorContent !== initialValues?.content ||
+      imageUrl !== initialValues?.image_url;
+
     let error, blogData;
     if (isEdit && initialValues?.id) {
+      let updateData: Partial<BlogData> = {
+        title: data.title,
+        content: editorContent,
+        image_url: imageUrl,
+      };
+
+      if (hasChanges) {
+        updateData.edited = true;
+      }
+
       ({ error, data: blogData } = await supabase
         .from("Blogs")
-        .update({
-          title: data.title,
-          content: editorContent,
-          image_url: imageUrl,
-          edited: isDirty,
-        })
+        .update(updateData)
         .eq("id", initialValues.id));
     } else {
       ({ error, data: blogData } = await supabase.from("Blogs").insert([
@@ -143,6 +154,12 @@ const BlogForm: React.FC<{
 
   return (
     <form onSubmit={handleSubmit(handleSubmitForm)} className="w-full">
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+
       <div className="my-5">
         <label className="block text-md font-medium my-1">
           Choose an preview image:

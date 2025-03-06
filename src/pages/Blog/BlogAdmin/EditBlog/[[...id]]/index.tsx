@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "@/lib/supabase";
 import BlogForm from "@/Components/BlogForm/BlogForm";
-import Link from "next/link";
 
 interface Blog {
   id: number;
