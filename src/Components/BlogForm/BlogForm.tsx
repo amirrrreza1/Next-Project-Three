@@ -45,12 +45,6 @@ const BlogForm: React.FC<{
   );
   const [loading, setLoading] = useState<boolean>(false);
 
-  if (loading) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "auto";
-  }
-
   useEffect(() => {
     setMounted(true);
     if (initialValues) {
