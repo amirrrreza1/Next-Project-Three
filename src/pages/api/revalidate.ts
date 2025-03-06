@@ -8,7 +8,7 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     try {
-      const { editedBlogIds } = req.body; // دریافت شناسه‌های پست‌های ویرایش شده
+      const { editedBlogIds } = req.body;
       if (!editedBlogIds || editedBlogIds.length === 0) {
         return res
           .status(400)
@@ -19,14 +19,16 @@ export default async function handler(
       const { error } = await supabase
         .from("Blogs")
         .update({ edited: false })
-        .in("id", editedBlogIds); // به‌روزرسانی تمام پست‌های ویرایش شده
+        .in("id", editedBlogIds);
 
       if (error) {
         return res.status(500).json({ message: "Error updating blogs", error });
       }
 
+      // Revalidate صفحه Blogs
+      await res.revalidate("/Blog");
+
       res.status(200).json({ message: "Revalidation successful!" });
-      res.revalidate("/Blog");
     } catch (error) {
       console.error("Error during revalidation:", error);
       res.status(500).json({ message: "Internal Server Error" });
