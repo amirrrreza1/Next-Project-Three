@@ -44,43 +44,53 @@ export default function EditBlogPage() {
     fetchBlog();
   }, [id]);
 
-const handleUpdateBlog = async (data: any, imageFile?: File) => {
-  if (!id) return;
+  const handleUpdateBlog = async (data: any, imageFile?: File) => {
+    if (!id) return;
 
-  let imageUrl = blog?.image_url || "";
+    setLoading(true); // Start uploading
+    let imageUrl = blog?.image_url || "";
 
-  // اگر کاربر تصویر جدیدی آپلود کرد، تصویر را جایگزین کنیم
-  if (imageFile) {
-    const filePath = `IMG/${Date.now()}_${imageFile.name}`;
-    const { data: uploadedFileData, error: uploadError } =
-      await supabase.storage.from("IMG").upload(filePath, imageFile);
+    // Handle image upload if a new image is provided
+    if (imageFile) {
+      const filePath = `IMG/${Date.now()}_${imageFile.name}`;
+      const { data: uploadedFileData, error: uploadError } =
+        await supabase.storage.from("IMG").upload(filePath, imageFile);
 
-    if (uploadError) {
-      console.error(
-        "Error uploading image:",
-        uploadError.message || uploadError
-      );
-    } else {
-      const { data } = supabase.storage.from("IMG").getPublicUrl(filePath);
-      imageUrl = data?.publicUrl || "";
+      if (uploadError) {
+        console.error(
+          "Error uploading image:",
+          uploadError.message || uploadError
+        );
+        setLoading(false); // Stop uploading
+        return; // Stop execution in case of error
+      } else {
+        const { data } = supabase.storage.from("IMG").getPublicUrl(filePath);
+        imageUrl = data?.publicUrl || "";
+      }
     }
-  }
 
-  const { error } = await supabase
-    .from("Blogs")
-    .update({
-      title: data.title,
-      content: data.content,
-      image_url: imageUrl, // ذخیره تصویر جدید یا قبلی
-    })
-    .eq("id", id);
+    console.log("Sending update request...");
 
-  if (error) {
-    console.error("Error updating blog:", error.message);
-  } else {
-    router.push("/Blog/BlogAdmin");
-  }
-};
+    const { error } = await supabase
+      .from("Blogs")
+      .update({
+        title: data.title,
+        content: data.content,
+        image_url: imageUrl,
+      })
+      .eq("id", id);
+
+    console.log("Update request sent"); // Check if the update request is made
+
+    setLoading(false); // Stop uploading after the update
+
+    if (error) {
+      console.error("Error updating blog:", error.message);
+    } else {
+      console.log("Update successful, sending revalidation request...");
+
+    }
+  };
 
   if (loading)
     return (

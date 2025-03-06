@@ -11,7 +11,7 @@ type BlogType = {
 };
 
 export default function BlogPost({ blog }: { blog: BlogType }) {
-  if (!blog) return <p>پست یافت ks</p>;
+  if (!blog) return <p>پست یافت نشد</p>;
 
   return (
     <>
@@ -39,8 +39,12 @@ export default function BlogPost({ blog }: { blog: BlogType }) {
   );
 }
 
-// دریافت اطلاعات هر پست به‌صورت استاتیک
-export async function getStaticProps({ params }: { params: { id: string } }) {
+// دریافت اطلاعات هر پست به‌صورت SSR
+export async function getServerSideProps({
+  params,
+}: {
+  params: { id: string };
+}) {
   const { data, error } = await supabase
     .from("Blogs")
     .select("*")
@@ -56,24 +60,5 @@ export async function getStaticProps({ params }: { params: { id: string } }) {
 
   return {
     props: { blog: data }, // مقدار `blog` را پاس بده
-  };
-}
-
-// دریافت ۵ پست اول برای ساخت مسیرهای استاتیک
-export async function getStaticPaths() {
-  const { data, error } = await supabase.from("Blogs").select("id").limit(5);
-
-  if (error || !data) {
-    console.error("Error fetching blog IDs:", error);
-    return { paths: [], fallback: "blocking" }; // مسیرهای خالی در صورت خطا
-  }
-
-  const paths = data.map((post) => ({
-    params: { id: post.id.toString() },
-  }));
-
-  return {
-    paths,
-    fallback: "blocking", // مسیرهای جدید روی سرور ساخته شوند
   };
 }
