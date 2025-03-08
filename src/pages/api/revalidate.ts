@@ -1,6 +1,5 @@
-// pages/api/revalidate.ts
 import { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "@/lib/supabase"; // اگر به supabase نیاز دارید
+import { supabase } from "@/lib/supabase"; 
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,7 +14,6 @@ export default async function handler(
           .json({ message: "No edited blogs to revalidate" });
       }
 
-      // به‌روزرسانی فیلد edited به false برای پست‌های ویرایش شده
       const { error } = await supabase
         .from("Blogs")
         .update({ edited: false })
@@ -25,7 +23,6 @@ export default async function handler(
         return res.status(500).json({ message: "Error updating blogs", error });
       }
 
-      // Revalidate صفحه Blogs
       await res.revalidate("/Blog");
 
       res.status(200).json({ message: "Revalidation successful!" });

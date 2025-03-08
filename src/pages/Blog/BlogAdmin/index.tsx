@@ -47,7 +47,7 @@ export default function BlogList() {
     });
 
     if (result.isConfirmed) {
-      setLoading(true); // فعال کردن لودینگ کل صفحه
+      setLoading(true);
       const { error } = await supabase.from("Blogs").delete().eq("id", id);
       if (error) {
         Swal.fire("Error", "Failed to delete blog.", "error");
@@ -55,12 +55,12 @@ export default function BlogList() {
         setBlogs((prev) => prev.filter((blog) => blog.id !== id));
         Swal.fire("Deleted!", "Your blog has been deleted.", "success");
       }
-      setLoading(false); // غیرفعال کردن لودینگ
+      setLoading(false);
     }
   };
 
   const revalidatePage = async () => {
-    setLoading(true); // نمایش لودینگ برای کل صفحه
+    setLoading(true);
     const editedBlogs = blogs
       .filter((blog) => blog.edited)
       .map((blog) => blog.id);
@@ -79,7 +79,7 @@ export default function BlogList() {
     Swal.fire("Success", data.message, "success");
 
     setBlogs((prev) => prev.map((blog) => ({ ...blog, edited: false })));
-    setLoading(false); // غیرفعال کردن لودینگ
+    setLoading(false);
   };
 
   return (
@@ -88,7 +88,6 @@ export default function BlogList() {
         <title>Blog Admin Page</title>
       </Head>
 
-      {/* نمایش لودینگ کل صفحه */}
       {loading && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center flex-col z-50">
             <span className="animate-spin border-4 border-white border-t-transparent rounded-full w-10 h-10 mb-3"></span>

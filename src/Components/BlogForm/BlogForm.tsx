@@ -103,7 +103,6 @@ const BlogForm: React.FC<{
       imageUrl = data?.publicUrl || "";
     }
 
-    // بررسی تغییرات
     const hasChanges =
       data.title !== initialValues?.title ||
       editorContent !== initialValues?.content ||

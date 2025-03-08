@@ -39,7 +39,6 @@ export default function BlogPost({ blog }: { blog: BlogType }) {
   );
 }
 
-// دریافت اطلاعات هر پست به‌صورت SSR
 export async function getServerSideProps({
   params,
 }: {
@@ -49,16 +48,16 @@ export async function getServerSideProps({
     .from("Blogs")
     .select("*")
     .eq("id", params.id)
-    .single(); // فقط یک پست را دریافت کن
+    .single();
 
   if (error) {
     console.error("Error fetching blog:", error);
     return {
-      notFound: true, // صفحه 404 برگردان اگر پست وجود نداشت
+      notFound: true,
     };
   }
 
   return {
-    props: { blog: data }, // مقدار `blog` را پاس بده
+    props: { blog: data },
   };
 }

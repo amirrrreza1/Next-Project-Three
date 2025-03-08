@@ -7,13 +7,13 @@ interface Blog {
   id: number;
   title: string;
   content: string;
-  image_url?: string; // اضافه کردن فیلد تصویر
+  image_url?: string;
 }
 
 interface BlogFormProps {
   isEdit: boolean;
   initialValues: Blog;
-  onSubmit: (data: Blog, imageFile?: File) => void; // این خط باید باشه
+  onSubmit: (data: Blog, imageFile?: File) => void;
 }
 
 export default function EditBlogPage() {
@@ -30,7 +30,7 @@ export default function EditBlogPage() {
       const { data, error } = await supabase
         .from("Blogs")
         .select("*")
-        .eq("id", id) // مقدار id را از URL یا state دریافت می‌کنی؟
+        .eq("id", id)
         .single();
 
       if (error) {
@@ -47,10 +47,9 @@ export default function EditBlogPage() {
   const handleUpdateBlog = async (data: any, imageFile?: File) => {
     if (!id) return;
 
-    setLoading(true); // Start uploading
+    setLoading(true);
     let imageUrl = blog?.image_url || "";
 
-    // Handle image upload if a new image is provided
     if (imageFile) {
       const filePath = `IMG/${Date.now()}_${imageFile.name}`;
       const { data: uploadedFileData, error: uploadError } =
@@ -61,15 +60,14 @@ export default function EditBlogPage() {
           "Error uploading image:",
           uploadError.message || uploadError
         );
-        setLoading(false); // Stop uploading
-        return; // Stop execution in case of error
+        setLoading(false);
+        return;
       } else {
         const { data } = supabase.storage.from("IMG").getPublicUrl(filePath);
         imageUrl = data?.publicUrl || "";
       }
     }
 
-    console.log("Sending update request...");
 
     const { error } = await supabase
       .from("Blogs")
@@ -80,10 +78,8 @@ export default function EditBlogPage() {
       })
       .eq("id", id);
 
-    console.log("Update request sent"); // Check if the update request is made
 
-    setLoading(false); // Stop uploading after the update
-
+    setLoading(false); 
     if (error) {
       console.error("Error updating blog:", error.message);
     } else {
