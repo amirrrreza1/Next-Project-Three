@@ -4,7 +4,7 @@ const HomePage = () => {
   return (
     <>
       <Head>
-        <title>صفحه اصلی</title>
+        <title>Home Page</title>
       </Head>
       <div className="w-[95%] max-w-[1000px] mx-auto p-4" style={{direction: "rtl"}}>
         <h1 className="text-3xl font-bold mb-4">به پروژه وبلاگ خوش آمدید</h1>
