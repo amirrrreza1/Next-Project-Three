@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "@/lib/supabase"; 
+import { supabase } from "@/lib/supabase";
 
 export default async function handler(
   req: NextApiRequest,
@@ -23,7 +23,13 @@ export default async function handler(
         return res.status(500).json({ message: "Error updating blogs", error });
       }
 
+      // Revalidate main blog page
       await res.revalidate("/Blog");
+
+      // Revalidate each blog's individual page
+      for (const id of editedBlogIds) {
+        await res.revalidate(`/Blog/${id}`);
+      }
 
       res.status(200).json({ message: "Revalidation successful!" });
     } catch (error) {

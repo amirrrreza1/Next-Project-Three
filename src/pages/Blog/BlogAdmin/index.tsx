@@ -132,7 +132,7 @@ export default function BlogList() {
                   />
                 </div>
                 <h2 className="text-xl font-semibold text-center line-clamp-2 h-[80px] flex justify-center items-center">
-                  {blog.title}
+                  {blog.title}                  
                 </h2>
                 <div className="flex justify-between mt-2">
                   <button
